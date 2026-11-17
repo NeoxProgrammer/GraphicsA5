@@ -27,6 +27,18 @@ enum ShaderVertexAttribute : int
     ATTRIBUTE_TCOORDS
 };
 
+
+struct DrawCall
+{
+    GLuint shader;
+    GLuint vao; 
+
+};
+
+
+
+
+
 struct App
 {
     GLFWwindow* window;
@@ -58,6 +70,8 @@ void LoadMeshObj(Mesh* mesh, const char* path)
     
     mesh->index_count = obj_mesh->index_count;
     mesh->positions.resize(mesh->index_count);
+    mesh->normals.resize(mesh->index_count);
+    mesh->tcoords.resize(mesh->index_count); 
 
     for (fastObjUInt i = 0; i < mesh->index_count; i++)
     {
@@ -188,8 +202,82 @@ void Init(App* app);
 
 int main()
 {
+   
+
+
+
+
+
     App app{};
     Init(&app);
+
+
+    //Triangle code///////////////////////////////////////////////////////////////////////////////////////////////////
+    DrawCall draw0{};
+    Vector3 triangle_positions[] =
+    {
+        { 0.0f,  0.5f, 0.0f },
+        { -0.5f, -0.5f, 0.0f },
+        { 0.5f, -0.5f, 0.0f }
+    };
+
+    Vector3 triangle_colors[] =
+    {
+        { 1.0f, 0.0f, 0.0 },
+        { 0.0f, 1.0f, 0.0 },
+        { 0.0f, 0.0f, 1.0 }
+    };
+
+    GLuint triangle_vao = GL_NONE;
+    GLuint triangle_positions_vbo = GL_NONE;
+    glGenVertexArrays(1, &triangle_vao);
+    glGenBuffers(1, &triangle_positions_vbo);
+
+    glBindVertexArray(triangle_vao);
+    GLuint triangle_colors_vbo = GL_NONE;
+    glGenBuffers(1, &triangle_colors_vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, triangle_positions_vbo);      // The following array (vertex) buffer will be described (triangle_positions_vbo):
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);// Index 0, 3 components, float data, no implicit normalization, no stride, no offset
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(Vector3), triangle_positions, GL_STATIC_DRAW); // Transfer memory of triangle_positions into currently bound vbo
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, triangle_colors_vbo);         // The following array (vertex) buffer will be described (triangle_colors_vbo):
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);// Index 1, 3 components, float data, no implicit normalization, no stride, no offset
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(Vector3), triangle_colors, GL_STATIC_DRAW); // Transfer memory of triangle_colors into currently bound vbo
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(GL_NONE);                                 // "Stop recording vertex buffer state"
+
+    GLuint vs_shader_triangle = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/a1_triangle.vert");
+    GLuint fs_shader_triangle = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a1_triangle.frag");
+    GLuint shader_program_triangle = LoadProgram(vs_shader_triangle, fs_shader_triangle);
+
+    draw0.vao = triangle_vao;
+    draw0.shader = shader_program_triangle;
+
+    //Triangle code///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
 
     int width, height;
     glfwGetWindowSize(app.window, &width, &height);
@@ -202,11 +290,91 @@ int main()
     GLuint vs_shader = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/a3_mesh.vert");
     GLuint fs_shader = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a3_mesh.frag");
     GLuint shader_program = LoadProgram(vs_shader, fs_shader);
-
     glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(app.window))
     {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearDepth(1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (app.object_index == 3)
+        {
+            
+            
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glUseProgram(draw0.shader);
+            glBindVertexArray(draw0.vao);
+            Matrix m = MatrixTranslate(0.0f, 0.0f, 0.0f);
+            GLuint loc = glad_glGetUniformLocation(draw0.shader, "transform");
+            GLuint uStyle = glGetUniformLocation(shader_program_triangle, "u_style_choice");
+            glUniform1i(uStyle, 0);
+            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(m));
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        }
+
+
+        if (app.object_index == 4)
+        {
+
+
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glUseProgram(draw0.shader);
+            glBindVertexArray(draw0.vao);
+            Matrix m = MatrixTranslate(0.0f, 0.0f, 0.0f);
+            GLuint loc = glad_glGetUniformLocation(draw0.shader, "transform");
+            GLuint uStyle = glGetUniformLocation(shader_program_triangle, "u_style_choice");
+            glUniform1i(uStyle, 1);
+            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(m));
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        }
+
+
+
+
+
+        else if (app.object_index < 3) {
+            static float animate_z = 0.0f;
+
+            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
+                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+            Matrix mvp = world * view * proj;
+
+            glUseProgram(shader_program);
+
+            /*glUniformMatrix4fv(glGetUniformLocation(shader_program, "u_world"), 1, GL_FALSE, MatrixToFloat(world));
+            glUniformMatrix4fv(glGetUniformLocation(shader_program, "u_mvp"), 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniform1i(glGetUniformLocation(shader_program, "u_style"), app.attribute_color);
+            glUniform1i(glGetUniformLocation(shader_program, "u_color_space"), app.color_space);*/
+            GLint loc_world = glGetUniformLocation(shader_program, "u_world");
+            GLint loc_mvp = glGetUniformLocation(shader_program, "u_mvp");
+            GLint loc_style = glGetUniformLocation(shader_program, "u_style");
+            GLint loc_color_space = glGetUniformLocation(shader_program, "u_color_space");
+
+            glUniformMatrix4fv(loc_world, 1, GL_FALSE, MatrixToFloat(world));
+            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniform1i(loc_style, app.attribute_color);
+            glUniform1i(loc_color_space, app.color_space);
+
+            const Mesh& mesh = meshes[app.object_index];
+            glBindVertexArray(mesh.vao);
+            glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
+
+        }
+
+
+
+
+
+
+        /*glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -232,7 +400,7 @@ int main()
         const Mesh& mesh = meshes[app.object_index];
         glBindVertexArray(mesh.vao);
 
-        glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
+        glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);*/
 
         glfwSwapBuffers(app.window);
         glfwPollEvents();
@@ -253,7 +421,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
     if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
     {
-        ++app->object_index %= 3;
+        ++app->object_index %= 5;
     }
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
