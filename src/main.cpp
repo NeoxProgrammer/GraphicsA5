@@ -69,6 +69,23 @@ void LoadMeshObj(Mesh* mesh, const char* path)
         // TODO -- sample tcoord indices and add them to the mesh's tcoords buffer
     }
 
+    for (fastObjUInt i = 0; i < mesh->index_count; i++)
+    {
+        Vector3* obj_normals_buffer = (Vector3*)obj_mesh->normals; 
+        fastObjUInt obj_normal_index = obj_mesh->indices[i].n;
+        mesh->normals[i] = obj_normals_buffer[obj_normal_index];
+    }
+
+    for (fastObjUInt i = 0; i < mesh->index_count; i++)
+    {
+        Vector2* obj_texture_coordinates_buffer = (Vector2*)obj_mesh->texcoords; 
+        fastObjUInt obj_text_coords_index = obj_mesh->indices[i].t; 
+        mesh->tcoords[i] = obj_texture_coordinates_buffer[obj_text_coords_index]; 
+
+    }
+    
+
+
     LoadMeshGpu(mesh);
     fast_obj_destroy(obj_mesh);
 }
