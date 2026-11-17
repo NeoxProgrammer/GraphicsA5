@@ -218,7 +218,7 @@ int main()
     {
         { 0.0f,  0.5f, 0.0f },
         { -0.5f, -0.5f, 0.0f },
-        { 0.5f, -0.5f, 0.0f }
+        { 0.5f, -0.5f, 1.0f }
     };
 
     Vector3 triangle_colors[] =
@@ -299,10 +299,19 @@ int main()
 
         if (app.object_index == 3)
         {
-            
+            static float animate_z = 0.0f;
+
+
+            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
+                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+            Matrix mvp = world * view * proj;
             
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
             glUseProgram(draw0.shader);
             glBindVertexArray(draw0.vao);
@@ -310,7 +319,7 @@ int main()
             GLuint loc = glad_glGetUniformLocation(draw0.shader, "transform");
             GLuint uStyle = glGetUniformLocation(shader_program_triangle, "u_style_choice");
             glUniform1i(uStyle, 0);
-            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(m));
+            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(mvp));
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
         }
@@ -318,10 +327,19 @@ int main()
 
         if (app.object_index == 4)
         {
+            static float animate_z = 0.0f;
 
+
+            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
+                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+            Matrix mvp = world * view * proj;
+
+            glUseProgram(shader_program);
 
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glUseProgram(draw0.shader);
             glBindVertexArray(draw0.vao);
@@ -329,7 +347,7 @@ int main()
             GLuint loc = glad_glGetUniformLocation(draw0.shader, "transform");
             GLuint uStyle = glGetUniformLocation(shader_program_triangle, "u_style_choice");
             glUniform1i(uStyle, 1);
-            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(m));
+            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(mvp));
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
         }
