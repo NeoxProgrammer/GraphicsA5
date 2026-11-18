@@ -1,5 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+
+
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -10,12 +16,16 @@
 #define PAR_SHAPES_IMPLEMENTATION
 #include "par_shapes.h"
 
+
+
+
 #include <raymath.h>
 
 #include <cassert>
 #include <iostream>
 #include <vector>
 #include "Shader.h"
+
 
 void APIENTRY DebugCallback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam);
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
