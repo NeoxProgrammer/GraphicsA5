@@ -316,15 +316,34 @@ int main()
 
 
     //Create Textures and load textures to the gpu
-
+    stbi_set_flip_vertically_on_load(true);
     int carWidth, carHeight, carChannels = 0;
-    stbi_uc* pixelsCar = stbi_load("assets/textures/ct4_grey.png", &carWidth, &carHeight, &carChannels,0); 
+    stbi_uc* pixelsCar = stbi_load("assets/textures/shoes-texture.jpg", &carWidth, &carHeight, &carChannels,0); 
     GLuint carTexture = GL_NONE; 
     glGenTextures(1, &carTexture); 
     glBindTexture(GL_TEXTURE_2D, carTexture); 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, carWidth, carHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelsCar); 
+    glGenerateMipmap(GL_TEXTURE_2D); 
+    glBindTexture(GL_TEXTURE_2D, GL_NONE);
     free(pixelsCar); 
     pixelsCar = nullptr; 
+
+    /*stbi_set_flip_vertically_on_load(true);
+    int w, h, ch;
+    stbi_uc* pixels = stbi_load("assets/textures/shoes-texture.jpg", &w, &h, &ch, 3); // force 3 channels
+    if (!pixels) { printf("Failed to load texture: %s\n", stbi_failure_reason()); }
+
+    GLuint carTexture = GL_NONE;
+    glGenTextures(1, &carTexture);
+    glBindTexture(GL_TEXTURE_2D, carTexture);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   // needed when width*3 isn't a multiple of 4
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    stbi_image_free(pixels);*/
 
 
 
@@ -438,10 +457,15 @@ int main()
         if (app.object_index == 2)
         {
             
+
+
+            glClearColor(0.2f, 0.2f, 0.5f, 1.0f);   // R, G, B, A (each 0.0 to 1.0)
+            glClearDepth(1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glUseProgram(shaderTexture);
             static float animate_z = 0.0f;
             GLint u_mvp = glGetUniformLocation(shaderTexture, "u_mvp"); 
-            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
             Matrix World2 = MatrixIdentity(); 
             Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
             Matrix mvp2 = view * World2 * proj; 
@@ -469,6 +493,7 @@ int main()
             const Mesh& mesh = meshes[1];
 
             glBindVertexArray(mesh.vao);
+            glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
             
             
 
