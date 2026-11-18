@@ -104,9 +104,9 @@ void LoadMeshObj(Mesh* mesh, const char* path)
     fast_obj_destroy(obj_mesh);
 }
 
-void LoadMeshPlane(Mesh* mesh)
+void LoadMeshHemisphere(Mesh* mesh)
 {
-    par_shapes_mesh* par = par_shapes_create_plane(1, 1);
+    par_shapes_mesh* par = par_shapes_create_hemisphere(32, 32);
     par_shapes_translate(par, -0.5f, -0.5f, 0.0f);
 
     LoadMeshPar(mesh, par);
@@ -283,9 +283,9 @@ int main()
     glfwGetWindowSize(app.window, &width, &height);
 
     Mesh meshes[3];
-    LoadMeshPlane(&meshes[0]);
+    LoadMeshHemisphere(&meshes[0]);
     LoadMeshSphere(&meshes[1]);
-    LoadMeshObj(&meshes[2], "./assets/meshes/head.obj");
+    LoadMeshObj(&meshes[2], "./assets/meshes/plane.obj");
 
     GLuint vs_shader = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/a3_mesh.vert");
     GLuint fs_shader = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a3_mesh.frag");
@@ -296,6 +296,68 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (app.object_index == 0)
+        {
+            static float animate_z = 0.0f;
+
+            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
+                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+            Matrix mvp = world * view * proj;
+
+            glUseProgram(shader_program);
+            GLint loc_world = glGetUniformLocation(shader_program, "u_world");
+            GLint loc_mvp = glGetUniformLocation(shader_program, "u_mvp");
+            GLint loc_style = glGetUniformLocation(shader_program, "u_style");
+            GLint loc_color_space = glGetUniformLocation(shader_program, "u_color_space");
+
+            glUniformMatrix4fv(loc_world, 1, GL_FALSE, MatrixToFloat(world));
+            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniform1i(loc_style, app.attribute_color);
+            glUniform1i(loc_color_space, app.color_space);
+
+            const Mesh& mesh = meshes[0];
+            glBindVertexArray(mesh.vao);
+            glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
+            app.attribute_color = 1;
+        }
+
+
+        if (app.object_index == 1)
+        {
+            static float animate_z = 0.0f;
+
+            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
+                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+            Matrix mvp = world * view * proj;
+
+            glUseProgram(shader_program);
+            GLint loc_world = glGetUniformLocation(shader_program, "u_world");
+            GLint loc_mvp = glGetUniformLocation(shader_program, "u_mvp");
+            GLint loc_style = glGetUniformLocation(shader_program, "u_style");
+            GLint loc_color_space = glGetUniformLocation(shader_program, "u_color_space");
+
+            glUniformMatrix4fv(loc_world, 1, GL_FALSE, MatrixToFloat(world));
+            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniform1i(loc_style, app.attribute_color);
+            glUniform1i(loc_color_space, app.color_space);
+
+            const Mesh& mesh = meshes[1];
+            glBindVertexArray(mesh.vao);
+            glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
+            app.attribute_color = 2;
+
+        }
+
+
+
+
+
+
 
         if (app.object_index == 3)
         {
@@ -354,9 +416,12 @@ int main()
 
 
 
+       
 
 
-        else if (app.object_index < 3) {
+
+
+        /*else if (app.object_index < 3) {
             static float animate_z = 0.0f;
 
             Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
@@ -367,10 +432,7 @@ int main()
 
             glUseProgram(shader_program);
 
-            /*glUniformMatrix4fv(glGetUniformLocation(shader_program, "u_world"), 1, GL_FALSE, MatrixToFloat(world));
-            glUniformMatrix4fv(glGetUniformLocation(shader_program, "u_mvp"), 1, GL_FALSE, MatrixToFloat(mvp));
-            glUniform1i(glGetUniformLocation(shader_program, "u_style"), app.attribute_color);
-            glUniform1i(glGetUniformLocation(shader_program, "u_color_space"), app.color_space);*/
+            
             GLint loc_world = glGetUniformLocation(shader_program, "u_world");
             GLint loc_mvp = glGetUniformLocation(shader_program, "u_mvp");
             GLint loc_style = glGetUniformLocation(shader_program, "u_style");
@@ -384,8 +446,9 @@ int main()
             const Mesh& mesh = meshes[app.object_index];
             glBindVertexArray(mesh.vao);
             glDrawArrays(GL_TRIANGLES, 0, mesh.index_count);
+            
 
-        }
+        }*/
 
 
 
