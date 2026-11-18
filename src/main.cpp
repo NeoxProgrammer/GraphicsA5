@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
+using namespace std;
 
 
 #define GLFW_INCLUDE_NONE
@@ -25,6 +25,8 @@
 #include <iostream>
 #include <vector>
 #include "Shader.h"
+
+
 
 
 void APIENTRY DebugCallback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam);
@@ -266,6 +268,76 @@ int main()
     draw0.vao = triangle_vao;
     draw0.shader = shader_program_triangle;
 
+    ///HOOMAN SHADER CODE
+    GLuint a1_tri_vert = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/a1_triangle.vert");
+    GLuint a1_tri_frag = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a1_triangle.frag");
+    GLuint a1_tri_shader = LoadProgram(a1_tri_vert, a1_tri_frag);
+
+    ///////////////////////////////LINE SHADER //////////////////////////////
+
+    GLuint a2_lines_vert = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/a2_lines.vert");
+    GLuint a2_lines_frag = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a2_lines.frag");
+    GLuint a2_lines_shader = LoadProgram(a2_lines_vert, a2_lines_frag);
+
+    // Vertex shaders:
+    GLuint vs = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/default.vert");
+    GLuint vsLines = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/lines.vert");
+    GLuint vsVertexPositionColor = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/vertex_color.vert");
+    GLuint vsColorBufferColor = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/buffer_color.vert");
+
+    // Fragment shaders:
+    GLuint fsLines = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/lines.frag");
+    GLuint fsUniformColor = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/uniform_color.frag");
+    GLuint fsVertexColor = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/vertex_color.frag");
+    GLuint fsTcoords = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/tcoord_color.frag");
+    GLuint fsNormals = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/normal_color.frag");
+    GLuint fsTexture = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/texture_color.frag");
+    GLuint fsTextureMix = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/texturemix_color.frag");
+
+    // Shader programs:
+    GLuint shaderUniformColor = LoadProgram(vs, fsUniformColor);
+    GLuint shaderVertexPositionColor = LoadProgram(vsVertexPositionColor, fsVertexColor);
+    GLuint shaderVertexBufferColor = LoadProgram(vsColorBufferColor, fsVertexColor);
+    GLuint shaderLines = LoadProgram(vsLines, fsLines);
+    GLuint shaderTcoords = LoadProgram(vs, fsTcoords);
+    GLuint shaderNormals = LoadProgram(vs, fsNormals);
+    GLuint shaderTexture = LoadProgram(vs, fsTexture);
+    GLuint shaderTextureMix = LoadProgram(vs, fsTextureMix);
+
+    // Add the triangle shaders
+    GLuint triangleVs = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/vertex_color.vert");
+    GLuint triangleFs = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/vertex_color.frag");
+    GLuint shaderTriangle = LoadProgram(triangleVs, triangleFs);
+
+    // Add point shader
+    GLuint vsPoints = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/points.vert");
+    GLuint shaderPoints = LoadProgram(vsPoints, fsVertexColor);
+
+
+
+    //Create Textures and load textures to the gpu
+
+    int carWidth, carHeight, carChannels = 0;
+    stbi_uc* pixelsCar = stbi_load("assets/textures/ct4_grey.png", &carWidth, &carHeight, &carChannels,0); 
+    GLuint carTexture = GL_NONE; 
+    glGenTextures(1, &carTexture); 
+    glBindTexture(GL_TEXTURE_2D, carTexture); 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, carWidth, carHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelsCar); 
+    free(pixelsCar); 
+    pixelsCar = nullptr; 
+
+
+
+
+
+
+    ///////////////////////
+
+
+
+
+
+
     //Triangle code///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -294,8 +366,8 @@ int main()
 
     Mesh meshes[3];
     LoadMeshHemisphere(&meshes[0]);
-    LoadMeshSphere(&meshes[1]);
-    LoadMeshObj(&meshes[2], "./assets/meshes/plane.obj");
+    LoadMeshSphere(&meshes[2]);
+    LoadMeshObj(&meshes[1], "./assets/meshes/shoes.obj");
 
     GLuint vs_shader = LoadShader(GL_VERTEX_SHADER, "./assets/shaders/a3_mesh.vert");
     GLuint fs_shader = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a3_mesh.frag");
@@ -363,7 +435,50 @@ int main()
 
         }
 
+        if (app.object_index == 2)
+        {
+            
+            glUseProgram(shaderTexture);
+            static float animate_z = 0.0f;
+            GLint u_mvp = glGetUniformLocation(shaderTexture, "u_mvp"); 
+            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+            Matrix World2 = MatrixIdentity(); 
+            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+            Matrix mvp2 = view * World2 * proj; 
+            glUniformMatrix4fv(u_mvp, 1, GL_FALSE, MatrixToFloat(mvp2)); 
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, carTexture);
+            
+            cout << "object index is 2"; 
 
+
+       
+
+
+
+
+
+           
+            
+
+
+
+
+            GLint u_texture = glGetUniformLocation(shaderTexture, "u_texture");
+            glUniform1i(u_texture, 0);
+            const Mesh& mesh = meshes[1];
+
+            glBindVertexArray(mesh.vao);
+            
+            
+
+            
+           
+
+        }
+
+
+        
 
 
 
