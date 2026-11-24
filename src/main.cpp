@@ -29,8 +29,22 @@ using namespace std;
 
 
 
+
 void APIENTRY DebugCallback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam);
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+
+//KEYBOARD CONTROLS
+
+
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); 
+
+
+
+
+
+
 
 enum ShaderVertexAttribute : int
 {
@@ -472,19 +486,6 @@ int main()
             glUniformMatrix4fv(u_mvp, 1, GL_FALSE, MatrixToFloat(mvp2)); 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, carTexture);
-            
-            cout << "object index is 2"; 
-
-
-       
-
-
-
-
-
-           
-            
-
 
 
 
