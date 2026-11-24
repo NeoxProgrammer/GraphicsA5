@@ -27,6 +27,11 @@ using namespace std;
 #include "Shader.h"
 
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
 
 
 
@@ -39,8 +44,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 
 
+glm::vec3 CameraPos = glm::vec3(0.0f, 0.0f, 3.0f); 
+glm::vec3 CameraFront = glm::vec3(0.0f, 0.0f,-1.0f);
+glm::vec3 CameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float CameraSpeed = 2.5f; 
 
-
+float deltaTime = 0.0f; 
+float lastFrame = 0.0f; 
 
 
 
@@ -396,6 +406,10 @@ int main()
     int width, height;
     glfwGetWindowSize(app.window, &width, &height);
 
+    glm::mat4 view = glm::lookAt(CameraPos, CameraPos + CameraFront, CameraUp);
+    glm::mat4 proj = glm::perspective(glm::radians(90.0f), width / (float)height, 0.1f, 100.0f);
+    glm::mat4 world = glm::mat4(1.0f);
+
     Mesh meshes[3];
     LoadMeshHemisphere(&meshes[0]);
     LoadMeshSphere(&meshes[2]);
@@ -407,19 +421,60 @@ int main()
     glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(app.window))
     {
+        float currentFrame = glfwGetTime(); 
+        deltaTime = currentFrame - lastFrame; 
+        lastFrame = currentFrame; 
+
+
+        
+
+
+
+
+
+        static float animate_z = 0.0f;
+
+
+        view = glm::lookAt(CameraPos, CameraPos + CameraFront, CameraUp);
+        glm::mat4 mvp = proj * view * world;
+
+
+
+
+        //OLD CAMERA LOGIC
+        /*Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
+            MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
+        Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+        Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
+        Matrix mvp = world * view * proj;*/
+
+        //OLD CAMERA LOGIC
+
+
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClearDepth(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        if (glfwGetKey(app.window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            CameraPos += CameraSpeed * deltaTime * CameraFront;
+        }
+
+        if (glfwGetKey(app.window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            CameraPos -= CameraSpeed * deltaTime * CameraFront;
+        }
+
+
+
+
+
         if (app.object_index == 0)
         {
-            static float animate_z = 0.0f;
+            
 
-            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
-                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
-            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
-            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
-            Matrix mvp = world * view * proj;
+           
 
             glUseProgram(shader_program);
             GLint loc_world = glGetUniformLocation(shader_program, "u_world");
@@ -427,8 +482,8 @@ int main()
             GLint loc_style = glGetUniformLocation(shader_program, "u_style");
             GLint loc_color_space = glGetUniformLocation(shader_program, "u_color_space");
 
-            glUniformMatrix4fv(loc_world, 1, GL_FALSE, MatrixToFloat(world));
-            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniformMatrix4fv(loc_world, 1, GL_FALSE, glm::value_ptr(world));
+            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, value_ptr(mvp));
             glUniform1i(loc_style, app.attribute_color);
             glUniform1i(loc_color_space, app.color_space);
 
@@ -441,22 +496,17 @@ int main()
 
         if (app.object_index == 1)
         {
-            static float animate_z = 0.0f;
+           
 
-            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
-                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
-            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
-            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
-            Matrix mvp = world * view * proj;
-
+           
             glUseProgram(shader_program);
             GLint loc_world = glGetUniformLocation(shader_program, "u_world");
             GLint loc_mvp = glGetUniformLocation(shader_program, "u_mvp");
             GLint loc_style = glGetUniformLocation(shader_program, "u_style");
             GLint loc_color_space = glGetUniformLocation(shader_program, "u_color_space");
 
-            glUniformMatrix4fv(loc_world, 1, GL_FALSE, MatrixToFloat(world));
-            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniformMatrix4fv(loc_world, 1, GL_FALSE, value_ptr(world));
+            glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, value_ptr(mvp));
             glUniform1i(loc_style, app.attribute_color);
             glUniform1i(loc_color_space, app.color_space);
 
@@ -478,11 +528,8 @@ int main()
             glUseProgram(shaderTexture);
             static float animate_z = 0.0f;
             GLint u_mvp = glGetUniformLocation(shaderTexture, "u_mvp"); 
-            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
-            Matrix World2 = MatrixIdentity(); 
-            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
-            Matrix mvp2 = view * World2 * proj; 
-            glUniformMatrix4fv(u_mvp, 1, GL_FALSE, MatrixToFloat(mvp2)); 
+            
+            glUniformMatrix4fv(u_mvp, 1, GL_FALSE, value_ptr(mvp)); 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, carTexture);
 
@@ -514,11 +561,6 @@ int main()
             static float animate_z = 0.0f;
 
 
-            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
-                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
-            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
-            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
-            Matrix mvp = world * view * proj;
             
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -531,7 +573,7 @@ int main()
             GLuint loc = glad_glGetUniformLocation(draw0.shader, "transform");
             GLuint uStyle = glGetUniformLocation(shader_program_triangle, "u_style_choice");
             glUniform1i(uStyle, 0);
-            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(mvp));
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
         }
@@ -539,14 +581,7 @@ int main()
 
         if (app.object_index == 4)
         {
-            static float animate_z = 0.0f;
-
-
-            Matrix world = MatrixRotateY(glfwGetTime() * 100.0f * DEG2RAD) *
-                MatrixTranslate(0.0f, 0.0f, 5.0f + (sinf(glfwGetTime()) * 3.0f) * animate_z);
-            Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
-            Matrix proj = MatrixPerspective(PI * 0.5f, (width / (float)height), 0.1, 100.0);
-            Matrix mvp = world * view * proj;
+            
 
             glUseProgram(shader_program);
 
@@ -559,7 +594,7 @@ int main()
             GLuint loc = glad_glGetUniformLocation(draw0.shader, "transform");
             GLuint uStyle = glGetUniformLocation(shader_program_triangle, "u_style_choice");
             glUniform1i(uStyle, 1);
-            glUniformMatrix4fv(loc, 1, GL_FALSE, MatrixToFloat(mvp));
+            glUniformMatrix4fv(loc, 1, GL_FALSE,value_ptr(mvp));
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
         }
@@ -663,6 +698,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     {
         ++app->color_space %= 2;
     }
+
+   
+
+
+
 }
 
 void Init(App* app)
