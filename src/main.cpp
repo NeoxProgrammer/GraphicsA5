@@ -38,7 +38,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); 
 
 
 
