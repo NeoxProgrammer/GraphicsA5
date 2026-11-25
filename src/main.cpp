@@ -52,7 +52,58 @@ float CameraSpeed = 2.5f;
 float deltaTime = 0.0f; 
 float lastFrame = 0.0f; 
 
+float yaw = -90.0f; 
+float pitch = 0.0f; 
+float fov = 45.0f; 
 
+bool firstMouse = true; 
+float lastX = 800.0f / 2.0f; 
+float lastY = 600.0f / 2.0f; 
+
+void mouse_callback(GLFWwindow*window,double XPos, double YPos) 
+{
+    if (firstMouse)
+    {
+        lastX = XPos; 
+        lastY = YPos; 
+        firstMouse = false; 
+
+    }
+
+    float xOffset = XPos - lastX; 
+    float yOffset = lastY - YPos; 
+
+    float sensitivity = 0.1f; 
+    xOffset *= sensitivity;
+    yOffset *= sensitivity; 
+    lastX = XPos;
+    lastY = YPos; 
+
+
+    yaw += xOffset; 
+    pitch += yOffset; 
+
+    if (pitch > 89.0f)
+    {
+        pitch = 89.0f; 
+        
+
+    }
+
+    if (pitch < -89.0f)
+    {
+        pitch = -89.0f;
+
+
+    }
+
+    glm::vec3 front; 
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch)); 
+    front.y = sin(glm::radians(pitch)); 
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch)); 
+    CameraFront = glm::normalize(front); 
+
+}
 
 
 enum ShaderVertexAttribute : int
@@ -407,7 +458,7 @@ int main()
     glfwGetWindowSize(app.window, &width, &height);
 
     glm::mat4 view = glm::lookAt(CameraPos, CameraPos + CameraFront, CameraUp);
-    glm::mat4 proj = glm::perspective(glm::radians(90.0f), width / (float)height, 0.1f, 100.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(fov), width / (float)height, 0.1f, 100.0f);
     glm::mat4 world = glm::mat4(1.0f);
 
     Mesh meshes[3];
@@ -419,6 +470,9 @@ int main()
     GLuint fs_shader = LoadShader(GL_FRAGMENT_SHADER, "./assets/shaders/a3_mesh.frag");
     GLuint shader_program = LoadProgram(vs_shader, fs_shader);
     glEnable(GL_DEPTH_TEST);
+
+    glfwSetCursorPosCallback(app.window, mouse_callback);
+    glfwSetInputMode(app.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
     while (!glfwWindowShouldClose(app.window))
     {
         float currentFrame = glfwGetTime(); 
@@ -433,8 +487,6 @@ int main()
 
 
         static float animate_z = 0.0f;
-
-
         view = glm::lookAt(CameraPos, CameraPos + CameraFront, CameraUp);
         glm::mat4 mvp = proj * view * world;
 
@@ -466,6 +518,38 @@ int main()
             CameraPos -= CameraSpeed * deltaTime * CameraFront;
         }
 
+        if (glfwGetKey(app.window, GLFW_KEY_A) == GLFW_PRESS) 
+        {
+            CameraPos -= glm::normalize(glm::cross(CameraFront, CameraUp)) * CameraSpeed * deltaTime; 
+
+        }
+
+        if (glfwGetKey(app.window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            CameraPos += glm::normalize(glm::cross(CameraFront, CameraUp)) * CameraSpeed * deltaTime;
+
+        }
+
+        if (glfwGetKey(app.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        {
+            CameraPos += CameraUp * CameraSpeed * deltaTime;
+
+        }
+
+        if (glfwGetKey(app.window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {
+            CameraPos -= CameraUp * CameraSpeed * deltaTime;
+
+        }
+
+
+       
+
+       
+
+
+
+      
 
 
 
